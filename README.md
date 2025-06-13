@@ -39,7 +39,7 @@ If you already have Julia and do not want to alter your default environment, you
    
 These two ways are equivalent. Both of them create a new Julia environment the first time you run it, or otherwise switch to this environment.
 
-## Test Examples
+## Code organization
 BNP-FRET is organized in such a way that all the user input is accomplished via the "input_parameters.jl" file. It can be used to provide the file name for FRET data, camera sensitivity parameters, crosstalk probabilities, plotting options, and sampler options as shown below:
 
 ![Screenshot from 2025-06-13 05-06-22](https://github.com/user-attachments/assets/16e51112-acc2-49f2-a4a1-155cb246c622)
@@ -48,21 +48,35 @@ BNP-FRET is organized in such a way that all the user input is accomplished via 
 
 Furthermore, the functions used to perform all the computations are organized in a hierarchical structure. The file "main.jl" contains the main sampler. All the functions called in that file are written in the file "functions_layer_1.jl". Similarly, all the functions called in the file "functions_layer_1.jl" are in file "functions_layer_2.jl". Any new set of functions can be introduced by following the same heirarchical structure. A brief description of all the functions is given below in the sequence they are called:
 
-Each specialization of BNP-FRET (continuous or pulsed illumination) is organized in such a way that all the user input is accomplished via the "input_parameters.jl" file. It can be used to provide file names for experimental FRET data and sampler output, background rates for each detection channel, crosstalk probabilities, and plotting options. See the respective files for more details (they are well-commented). The functions involved in the both specializations of BNP-FRET and their respective outputs are briefly described below:
+1. get_FRET_data(): Used to obtain photon arrival data and corresponding detection channels from input files in HDF5 format. It can be easily modified if other file formats are desired.
 
-### 1. Continuous Illumination
+2. sampler(): Used to generate samples for parameters of interest using Gibbs algorithm.
 
-The functions used to perform all the computations are organized in a hierarchical structure. The file "sampler_continuous_illumination.jl" contains the main sampler. All the functions called in that file are written in the file "functions_layer_1.jl". Similarly, all the functions called in the file "functions_layer_1.jl" are in file "functions_layer_2.jl". Any new set of functions can be introduced by following the same heirarchical structure. A brief description of all the functions is given below in the sequence they are called:
+3. check_for_existing_mcmc_data(): Called by sampler() to searche for previously generate MCMC samples stored in HDF5 format files in the working directory.
 
-These parameters define the shape of the microscope point spread function (numerical aperture, magnification, light wavelength), camera noise (gain, CCD sensitivity, readout), directory (folder) where files are located, file name, parallelization and inference settings. 
+4. initialize_params(): Called by sampler() to initialize all the parameters of interest to constitute the first set of MCMC samples.
 
-Using parameter files similar to the the image above, we here provide two simple plug and play example to test the functioning of B-SIM on a personal computer. In the first example for simulated line pairs with spacing varying 90nm to 150nm in increments of 30nm, we provide three tiff files "raw_images.tif", "patterns.tif", and "ground_truth.tif" containing 9 sinuosidal patterns and corresponding raw images as well as the ground truth. 
+5. get_log_likelihood(): Called by sampler() to computes the logarithm of the likelihood function for the FRET data.
 
-In the second example for HeLa cells images obtained in an experiment, we also provide camera calibration maps in addition to the raw images and illumination patterns. 
+   get_generator(): Called by get_log_likelihood() to obtain the full generator matrix containing photophysical and biomolecular transition rates.
+   
+   get_rho(): Called by get_log_likelihood() to obtain the initial probability vector associated with the generator matrix.
+   
+   non_radiative_propagator: Called by get_log_likelihood() to compute propagators during periods when no photons are detected.
+   
+   radiative_propagator: Called by get_log_likelihood() to compute propagators at photon arrival times.
 
-Currently, B-SIM accepts rectangular images. Furthermore, the current version provides two options for the PSF: "gaussian" and "airy_disk", but can be modified easily to incorporate any other shape.
+6. get_log_prior_rates(): Called by sampler() to obtain logarithm of prior density at a parameter's value.
 
-With the settings in the image above, the code divides all the images into 4 sets of sub-images of equal sizes (a 2x2 grid). Next, each set of sub-images is then sent to their assigned processor and inference is performed on the fluorescence intensity map. The number of processors can be changed if running on a more powerful computer by changing "n_procs_per_dim" parameter, which is set to 2 by default.
+7. get_log_full_posterior(): Called by sampler() to get full joint posterior. Sums logarithms of likelihood and all the priors.
+
+8. save_mcmc_data(): Called by sampler() to save output to files.
+
+9. print_and_plotting(): Called by sampler() to print values on standard out (terminal/screen). It also generates plots (shown in the example below).
+
+10. propose_params(): Called by sampler() in the for loop to propose new samples for each parameter that may or may not be accepted in the Metropolis-Hastings (MH) step.
+
+
 
 To run this example, we suggest putting B-SIM scripts and the input tif files in the same folder/directory. Next, if running on a Windows machine, first confirm the current folder that julia is being run from by executing the following command in the REPL:
 
@@ -136,33 +150,6 @@ Each specialization of BNP-FRET (continuous or pulsed illumination) is organized
 
 The functions used to perform all the computations are organized in a hierarchical structure. The file "sampler_continuous_illumination.jl" contains the main sampler. All the functions called in that file are written in the file "functions_layer_1.jl". Similarly, all the functions called in the file "functions_layer_1.jl" are in file "functions_layer_2.jl". Any new set of functions can be introduced by following the same heirarchical structure. A brief description of all the functions is given below in the sequence they are called:
 
-1. get_FRET_data(): Used to obtain photon arrival data and corresponding detection channels from input files in HDF5 format. It can be easily modified if other file formats are desired.
-
-2. sampler(): Used to generate samples for parameters of interest using Gibbs algorithm.
-
-3. check_for_existing_mcmc_data(): Called by sampler() to searche for previously generate MCMC samples stored in HDF5 format files in the working directory.
-
-4. initialize_params(): Called by sampler() to initialize all the parameters of interest to constitute the first set of MCMC samples.
-
-5. get_log_likelihood(): Called by sampler() to computes the logarithm of the likelihood function for the FRET data.
-
-   get_generator(): Called by get_log_likelihood() to obtain the full generator matrix containing photophysical and biomolecular transition rates.
-   
-   get_rho(): Called by get_log_likelihood() to obtain the initial probability vector associated with the generator matrix.
-   
-   non_radiative_propagator: Called by get_log_likelihood() to compute propagators during periods when no photons are detected.
-   
-   radiative_propagator: Called by get_log_likelihood() to compute propagators at photon arrival times.
-
-6. get_log_prior_rates(): Called by sampler() to obtain logarithm of prior density at a parameter's value.
-
-7. get_log_full_posterior(): Called by sampler() to get full joint posterior. Sums logarithms of likelihood and all the priors.
-
-8. save_mcmc_data(): Called by sampler() to save output to files.
-
-9. print_and_plotting(): Called by sampler() to print values on standard out (terminal/screen). It also generates plots (shown in the example below).
-
-10. propose_params(): Called by sampler() in the for loop to propose new samples for each parameter that may or may not be accepted in the Metropolis-Hastings (MH) step.
 
 
 
