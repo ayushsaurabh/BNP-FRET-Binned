@@ -54,7 +54,7 @@
 ###############################################################################
 
 using Random
-rng = Xoshiro(123);
+rng = Xoshiro(1234);
 
 using Distributions, SpecialFunctions
 using LinearAlgebra
@@ -222,13 +222,7 @@ function sampler_HMM()
  	println(" Initializing all variables...")
  	flush(stdout);
  
- 	loads, absorption_rate, linear_drift_rate,
-		rates, state_trajectory, photons_absorbed,
- 			emitted_donor_photons, emitted_acceptor_photons,
- 				bg_photons_donor, bg_photons_acceptor,
-				generator, propagator, rho,  
-				loads_active, 
-				loads_inactive,
+ 	absorption_rate, linear_drift_rate,
 				n_system_states = 
 					initialize_variables!(loads,
 						absorption_rate, 
@@ -270,10 +264,10 @@ function sampler_HMM()
 					intermediate_vec2)
   
 
-	FRET_efficiencies = get_FRET_efficiencies(FRET_efficiencies, 
-						  n_system_states, 
-						  loads_active, 
-						  rates)
+	get_FRET_efficiencies!(FRET_efficiencies, 
+				n_system_states, 
+				loads_active, 
+				rates)
 
 	println("****************************************************************")
 	@show draw
@@ -301,7 +295,7 @@ function sampler_HMM()
  				    	annealing_constant)
  
  		# Get the new rates for conformation dynamics
-    		rates = sample_transition_rates!(draw, 
+    		sample_transition_rates!(draw, 
  				absorption_rate,
  				linear_drift_rate,
  				rates,
@@ -322,9 +316,7 @@ function sampler_HMM()
 				intermediate_vec3)
  
  		# Sample Parameters Governing Emissions
-   		absorption_rate, linear_drift_rate, photons_absorbed, 
-   			emitted_donor_photons,
-   				emitted_acceptor_photons =
+   		absorption_rate, linear_drift_rate =
   					sample_emission_parameters!(draw, 
   						absorption_rate,
   						linear_drift_rate,
@@ -345,8 +337,7 @@ function sampler_HMM()
   
   		if (draw-1) % save_burn_in_period <= burn_in_period
   
-          		loads, state_trajectory =
-               			sample_loads_state_trajectory!(draw, 
+               		sample_loads_state_trajectory!(draw, 
   					loads, 
   					absorption_rate,
   					linear_drift_rate,
@@ -374,12 +365,11 @@ function sampler_HMM()
  					state_trajectory_inactive)
   
   		end
-  		loads_active, loads_inactive, n_system_states = 
- 					get_active_inactive_loads!(loads,
+  		n_system_states = get_active_inactive_loads!(loads,
  							loads_active,
  							loads_inactive,
  							n_system_states)
- 		generator, propagator, rho = get_generator!(loads_active, 
+ 		get_generator!(loads_active, 
  					n_system_states,
  					rates,
  					generator,
@@ -407,7 +397,7 @@ function sampler_HMM()
 					intermediate_vec,
 					intermediate_vec2)
 
-        	FRET_efficiencies = get_FRET_efficiencies(FRET_efficiencies, 
+        	get_FRET_efficiencies!(FRET_efficiencies, 
         					  n_system_states, 
         					  loads_active, 
         					  rates)

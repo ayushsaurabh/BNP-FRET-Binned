@@ -89,12 +89,11 @@ function initialize_variables!(loads::Vector{Int64},
 		n_system_states = expected_n_system_states
 	end
 
-	loads_active, loads_inactive, n_system_states = 
-					get_active_inactive_loads!(loads,
+	n_system_states = get_active_inactive_loads!(loads,
 							loads_active,
 							loads_inactive,
 							n_system_states)
-	generator, propagator, rho = get_generator!(loads_active, 
+	get_generator!(loads_active, 
 					n_system_states,
 					rates,
 					generator,
@@ -125,12 +124,7 @@ function initialize_variables!(loads::Vector{Int64},
 
  	end
 
-	return loads, absorption_rate, linear_drift_rate, 
-		rates, state_trajectory, photons_absorbed,
-		emitted_donor_photons, emitted_acceptor_photons,
-		bg_photons_donor, bg_photons_acceptor,
-		generator, propagator, rho, 
-		loads_active, loads_inactive, n_system_states
+	return absorption_rate, linear_drift_rate, n_system_states
 end
 
 function get_log_posterior(loads::Vector{Int64},
@@ -155,9 +149,10 @@ function get_log_posterior(loads::Vector{Int64},
 
 	log_likelihood::Float64 = 0.0
 	prob_vector .= rho
+	prob_vector[n_system_states+1:end] .= 0.0
 	
 	for bin in 1:n_bins
-		reduced_propagator = get_reduced_propagator!(bin, 
+		get_reduced_propagator!(bin, 
 					loads, 
 					absorption_rate,
 					linear_drift_rate,
@@ -174,16 +169,13 @@ function get_log_posterior(loads::Vector{Int64},
 					n_system_states,
 					reduced_propagator,
 					reduced_propagator_transpose)
-		mul!(intermediate_vec, reduced_propagator, prob_vector)
-		prob_vector[1:n_system_states] .= view(intermediate_vec, 1:n_system_states)
-		p::Float64 = sum(prob_vector)
-		log_likelihood += log(p)
-		prob_vector .= prob_vector ./ p
 
-#		@show intermediate_vec
-#		@show reduced_propagator
-#		@show prob_vector
-#		@show bin, log(p)
+		mul!(intermediate_vec, reduced_propagator, prob_vector)
+                prob_vector[1:n_system_states] .= view(intermediate_vec, 1:n_system_states)
+                prob_vector[n_system_states+1:end] .= 0.0
+                p::Float64 = sum(prob_vector)
+                log_likelihood += log(p)
+                prob_vector .= prob_vector ./ p
 
 	end
 
@@ -226,7 +218,7 @@ function get_log_posterior(loads::Vector{Int64},
 	return log_posterior
 end
 
-function get_FRET_efficiencies(FRET_efficiencies, 
+function get_FRET_efficiencies!(FRET_efficiencies, 
 			n_system_states::Int64, 
 			loads_active::Vector{Int64},
 			rates::Vector{Float64})
@@ -237,7 +229,7 @@ function get_FRET_efficiencies(FRET_efficiencies,
 		FRET_efficiencies[i] = rates[ii]
 	end
 
-	return FRET_efficiencies
+	return nothing
 end
 
 function sample_transition_rates!(draw::Int64,
@@ -328,7 +320,7 @@ function sample_transition_rates!(draw::Int64,
   				proposed_rate = exp(proposed_rate)
 				rates[ij] = proposed_rate
 
-				generator, propagator, rho = get_generator!(loads_active, 
+				get_generator!(loads_active, 
 					n_system_states,
 					rates,
 					generator,
@@ -370,7 +362,7 @@ function sample_transition_rates!(draw::Int64,
 					rates[ij] = old_rate
 				end
 
-				generator, propagator, rho = get_generator!(loads_active, 
+				get_generator!(loads_active, 
 					n_system_states,
 					rates,
 					generator,
@@ -539,7 +531,7 @@ function sample_transition_rates!(draw::Int64,
 		end
 	end
 
-	return rates
+	return nothing
 end
 
 
@@ -722,12 +714,7 @@ function sample_emission_parameters!(draw::Int64,
  		end
 	end
 
-	return absorption_rate, linear_drift_rate,
-			photons_absorbed,
-			emitted_donor_photons,
-			emitted_acceptor_photons,
-			bg_photons_donor,
-			bg_photons_acceptor
+	return absorption_rate, linear_drift_rate
 end #function
 
 
@@ -767,8 +754,8 @@ function sample_loads_state_trajectory!(draw::Int64,
 	local accept_trajectory::Bool
 	if modeling_choice == "parametric"
 
- 		state_trajectory, accept_trajectory =
-					sample_state_trajectory!( 
+ 		accept_trajectory =
+				sample_state_trajectory!( 
 							absorption_rate,
 							linear_drift_rate,
 							rates,
@@ -830,20 +817,20 @@ function sample_loads_state_trajectory!(draw::Int64,
 				# Proposed Load
  				loads[i] = i
 
-				loads_active, loads_inactive, n_system_states = 
+				n_system_states = 
 					get_active_inactive_loads!(loads,
 							loads_active,
 							loads_inactive,
 							n_system_states)
-				generator, propagator, rho = get_generator!(loads_active, 
+				get_generator!(loads_active, 
 							n_system_states,
 							rates,
 							generator,
 							propagator,
 							rho)
 
- 		    		state_trajectory_active, 
-					accept_trajectory =
+ 		    		 
+				accept_trajectory =
   						sample_state_trajectory!( 
 							absorption_rate,
 							linear_drift_rate,
@@ -908,7 +895,7 @@ function sample_loads_state_trajectory!(draw::Int64,
 
 				# Proposed Load
  				loads[i] = 0
-				loads_active, loads_inactive, n_system_states = 
+				n_system_states = 
 					get_active_inactive_loads!(loads,
 							loads_active,
 							loads_inactive,
@@ -916,15 +903,14 @@ function sample_loads_state_trajectory!(draw::Int64,
 
  				if n_system_states > 0
 
-					generator, propagator, rho = get_generator!(loads_active, 
+					get_generator!(loads_active, 
 							n_system_states,
 							rates,
 							generator,
 							propagator,
 							rho)
 
- 		    			state_trajectory_inactive, 
-						accept_trajectory = sample_state_trajectory!( 
+					accept_trajectory = sample_state_trajectory!( 
 								absorption_rate,
 								linear_drift_rate,
 								rates,
@@ -1020,7 +1006,7 @@ function sample_loads_state_trajectory!(draw::Int64,
  		end
 	end
 
-  	return loads, state_trajectory
+  	return nothing 
 end
 
 function save_mcmc_data(current_draw::Int64, 

@@ -19,7 +19,7 @@ function get_active_inactive_loads!(loads::Vector{Int64},
 	loads_active[1:n_system_states] .= findall(x -> x != 0, loads)
 	loads_inactive[1:n_inactive_states] .= findall(x -> x == 0, loads)
 
-	return loads_active, loads_inactive, n_system_states
+	return n_system_states
 end
 
 
@@ -66,7 +66,7 @@ function get_generator!(loads_active::Vector{Int64},
 					  view(generator, 1:n_system_states, 
 						    1:n_system_states))
 
-	return generator, propagator, rho
+	return nothing 
 end
 
 function get_log_demarginalized_likelihood_rates(
@@ -260,7 +260,7 @@ function get_reduced_propagator!(bin::Int64,
 	transpose!(reduced_propagator_transpose, reduced_propagator)
 	reduced_propagator .= reduced_propagator_transpose 
 
-	return reduced_propagator
+	return nothing
 end
 
 # State Trajectory
@@ -324,7 +324,7 @@ function sample_state_trajectory!(
 					      loads_active)[1]
 			prob_vec[1:n_system_states] .= view(filter_terms, 1:n_system_states, bin) .*
 						view(propagator, 1:n_system_states, final_state)
-			prob_vec .= prob_vec/sum(prob_vec)
+			prob_vec .= prob_vec/sum(view(prob_vec, 1:n_system_states))
 			state_trajectory[bin] = loads_active[rand(rng, 
 						Categorical(prob_vec[1:n_system_states]), 1)[1]]
 		end
@@ -334,5 +334,5 @@ function sample_state_trajectory!(
  			println("TRAJECTORY REJECTED")
 	end
 
-	return state_trajectory, accept_trajectory
+	return accept_trajectory
 end

@@ -72,7 +72,6 @@ function get_filter_terms!(
 	filter_terms .= 0.0
 	log_observation_prob .= 0.0
 	prob_vec .= rho 
-	prob_vec[n_system_states+1:end] .= 0.0
 
 	bin::Int64 = 1
 	for system_state in 1:n_system_states
@@ -90,15 +89,18 @@ function get_filter_terms!(
 	end
 
 	log_prob_max::Float64 = maximum(view(log_observation_prob, 1:n_system_states))
-	prob_vec .= prob_vec .* exp.(log_observation_prob .- log_prob_max)
-	# The above rescaling helps avoid underflow/overflow issues.
-	prob_vec .= prob_vec/(sum(prob_vec))
+
+	# The rescaling below helps avoid underflow/overflow issues.
+        prob_vec .= prob_vec .* exp.(log_observation_prob .- log_prob_max)
+        prob_vec[n_system_states+1:end] .= 0.0
+        prob_vec .= prob_vec/sum(prob_vec)
+
 	filter_terms[1:n_system_states, bin] .= view(prob_vec, 1:n_system_states)
 
 	local accept_trajectory::Bool
 
-  	if size(findall(x-> isnan(x) == true, prob_vec))[1]> 0 ||
-					log_observation_prob == NaN
+        if size(findall(x-> isnan(x) == true, view(prob_vec, 1:n_system_states)))[1]> 0 ||
+                        log_observation_prob == NaN
 
 		accept_trajectory = false
  		println("TRAJECTORY REJECTED 1")
@@ -111,9 +113,6 @@ function get_filter_terms!(
 		transpose!(propagator_transpose, propagator)
 		mul!(intermediate_vec, propagator_transpose, prob_vec)
  		prob_vec .= intermediate_vec 
-
-#		prob_vec .=  propagator_transpose * prob_vec
-		prob_vec[n_system_states+1:end] .= 0.0
 
 		for system_state in 1:n_system_states
 			log_observation_prob[system_state] =
@@ -129,13 +128,14 @@ function get_filter_terms!(
 						rates)
 		end
 		log_prob_max = maximum(log_observation_prob)
-		prob_vec .= prob_vec .* exp.(log_observation_prob .- log_prob_max)
-		prob_vec .= prob_vec/sum(prob_vec)
-		filter_terms[1:n_system_states, bin] .= view(prob_vec, 1:n_system_states)
+                prob_vec .= prob_vec .* exp.(log_observation_prob .- log_prob_max)
+                prob_vec[n_system_states+1:end] .= 0.0
+                prob_vec .= prob_vec/sum(prob_vec)
 
+                filter_terms[1:n_system_states, bin] .= view(prob_vec, 1:n_system_states)
 
-  		if size(findall(x-> isnan(x) == true, prob_vec))[1]> 0 ||
-						log_observation_prob == NaN
+                if size(findall(x-> isnan(x) == true, view(prob_vec, 1:n_system_states)))[1]> 0 ||
+                                log_observation_prob == NaN
 
 			accept_trajectory = false
  			println("TRAJECTORY REJECTED 2")
