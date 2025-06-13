@@ -4,10 +4,6 @@ BNP-FRET is a suite of software tools to analyze binned smFRET data collected us
 
 https://biorxiv.org/cgi/content/short/2022.07.20.500887v1
 
-https://biorxiv.org/cgi/content/short/2022.07.20.500888v1
-
-https://biorxiv.org/cgi/content/short/2022.07.20.500892v1
-
 ## Julia Installation
 
 All the codes are written in Julia language for high performance/speed (similar to C and Fortran) and its open-source/free availability. Julia also allows easy parallelization of all the codes. To install julia, please download and install julia language installer from their official website (see below) for your operating system or use your package manager. The current version of the code has been successfully tested on linux (Ubuntu 24.04.1 LTS), macOS 12, and Windows.
