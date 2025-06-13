@@ -19,8 +19,9 @@ Once the julia language has been installed, some essential julia packages are re
 ```add Distributions SpecialFunctions LinearAlgebra Statistics StatsBase Plots HDF5```
 
 Also, see the image below for an example of the package installation process in julia REPL.
-![image](https://github.com/user-attachments/assets/58547e8d-db0e-4bf6-92ec-9cd68ebfd4dd)
 
+
+![Screenshot from 2025-06-13 04-49-47](https://github.com/user-attachments/assets/fae7ecc4-9e54-4bf8-ad12-daaf1420822f)
 
 
 ## A Brief Description of the Sampler
