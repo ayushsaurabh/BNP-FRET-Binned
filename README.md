@@ -16,7 +16,7 @@ https://julialang.org/
 
 Once the julia language has been installed, some essential julia packages are required to be added that help simplify linear algebra and statistical calculations, and plotting. To add these packages via julia REPL, first enter the julia package manager by executing "]" command in the REPL. Then simply execute the following command to install all these packages at the same time. 
 
-```add Distributions LinearAlgebra Statistics Plots StatsPlots KernelDensity HDF5```
+```add Distributions SpecialFunctions LinearAlgebra Statistics StatsBase Plots HDF5```
 
 Also, see the image below for an example of the package installation process in julia REPL.
 
