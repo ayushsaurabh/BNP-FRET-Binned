@@ -40,7 +40,7 @@ If you already have Julia and do not want to alter your default environment, you
 These two ways are equivalent. Both of them create a new Julia environment the first time you run it, or otherwise switch to this environment.
 
 ## Test Examples
-BNP-FRET is organized in such a way that all the user input is accomplished via the "input_parameters.jl" file. It can be used to provide file names for experimental FRET data and sampler output, camera sensitivity parameters, crosstalk probabilities, plotting options, and sampler options as shown below:
+BNP-FRET is organized in such a way that all the user input is accomplished via the "input_parameters.jl" file. It can be used to provide the file name for FRET data, camera sensitivity parameters, crosstalk probabilities, plotting options, and sampler options as shown below:
 
 ![Screenshot from 2025-06-13 05-06-22](https://github.com/user-attachments/assets/16e51112-acc2-49f2-a4a1-155cb246c622)
 
