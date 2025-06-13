@@ -10,11 +10,17 @@ https://biorxiv.org/cgi/content/short/2022.07.20.500892v1
 
 ## Julia Installation
 
-All the codes are written in Julia language for high performance/speed and its open-source/free availability. Julia also allows easy parallelization of all the codes. To install julia, please download and install julia language from their official website (see below) for your operating system or use your package manager. The current version of the code has been successfully tested on Ubuntu 20.04, macOS 12, and Windows ..
+All the codes are written in Julia language for high performance/speed (similar to C and Fortran) and its open-source/free availability. Julia also allows easy parallelization of all the codes. To install julia, please download and install julia language installer from their official website (see below) for your operating system or use your package manager. The current version of the code has been successfully tested on linux (Ubuntu 22.04), macOS 12, and Windows.
 
 https://julialang.org/
 
-Once the julia language has been installed, some essential julia packages are required to be added that help simplify linear algebra and statistical calculations, and plotting. To add these packages via julia REPL, first enter the julia package manager by executing "]" command in the REPL. Then simply execute the following command to install all these packages at the same time. 
+Like python, Julia also has an interactive environment (commonly known as REPL) which can be used to add packages and perform simple tests as shown in the picture below.
+
+
+![Screenshot from 2023-11-08 14-36-41](https://github.com/ayushsaurabh/B-SIM/assets/87823118/05bdffb9-6857-4209-9d8d-97cedd3a3578)
+
+
+In Windows, this interactive environment can be started by clicking on the Julia icon on Desktop that is created upon installation or by going into the programs menu directly. On Linux or macOS machines, julia REPL can be accessed by simply typing julia in the terminal. We use this environment to install some essential julia packages that help simplify linear algebra and statistical calculations, and plotting. To add these packages via julia REPL, **first enter the julia package manager by executing `]` command in the REPL**. Then simply execute the following command to install all these packages at the same time.
 
 ```add Distributions SpecialFunctions LinearAlgebra Statistics StatsBase Plots HDF5```
 
