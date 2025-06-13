@@ -77,6 +77,11 @@ Furthermore, the functions used to perform all the computations are organized in
 10. propose_params(): Called by sampler() in the for loop to propose new samples for each parameter that may or may not be accepted in the Metropolis-Hastings (MH) step.
 
 
+# Test Examples
+We provide two examples: 1) a simulated FRET trace with 3 states and 2) experimental FRET trace for Holliday junction. As shown below, these traces are stored in HDF5 files and contain donor and acceptor channel digital counts, donor and acceptor channel background rates, and camera calibration parameters, readout offset and readout noise variance, generated for each individual trace from dark calibration images.
+
+![Screenshot from 2025-06-13 05-16-28](https://github.com/user-attachments/assets/83d92ac9-04b1-45a8-82b2-b73f193c7fbc)
+
 
 To run this example, we suggest putting B-SIM scripts and the input tif files in the same folder/directory. Next, if running on a Windows machine, first confirm the current folder that julia is being run from by executing the following command in the REPL:
 
