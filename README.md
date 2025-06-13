@@ -50,31 +50,43 @@ Furthermore, the functions used to perform all the computations are organized in
 
 1. get_FRET_data(): Used to obtain photon arrival data and corresponding detection channels from input files in HDF5 format. It can be easily modified if other file formats are desired.
 
-2. sampler(): Used to generate samples for parameters of interest using Gibbs algorithm.
+2. sampler_HMM(): Used to generate samples for parameters of interest using Gibbs algorithm.
 
-3. check_for_existing_mcmc_data(): Called by sampler() to searche for previously generate MCMC samples stored in HDF5 format files in the working directory.
-
-4. initialize_params(): Called by sampler() to initialize all the parameters of interest to constitute the first set of MCMC samples.
-
-5. get_log_likelihood(): Called by sampler() to computes the logarithm of the likelihood function for the FRET data.
-
-   get_generator(): Called by get_log_likelihood() to obtain the full generator matrix containing photophysical and biomolecular transition rates.
+3. initialize_variables!(): Initializes all the parameters of interest to constitute the first set of MCMC samples.
    
-   get_rho(): Called by get_log_likelihood() to obtain the initial probability vector associated with the generator matrix.
+4. get_log_full_posterior(): Called by sampler() to get full joint posterior. Sums logarithms of likelihood and all the priors.
    
-   non_radiative_propagator: Called by get_log_likelihood() to compute propagators during periods when no photons are detected.
-   
-   radiative_propagator: Called by get_log_likelihood() to compute propagators at photon arrival times.
+5. get_FRET_efficiences!(): Called to obtain FRET efficiencies for the active states.
+ 
+6. sample_transition_rates!(): Called to sample kinetic rates and FRET efficiencies.
+    
+7. sample_emission_parameters!(): Called to sample intermediate hidden variables like emitted photon counts.
 
-6. get_log_prior_rates(): Called by sampler() to obtain logarithm of prior density at a parameter's value.
+8. sample_loads_state_trajectory!(): Called to jointly sample active states from a large collection of states and the state trajectory.
+ 
+9. get_active_inactive_loads!(): Called to identify active and inactive states.
+ 
+10. get_generator!(): Called to get generator matrix with kinetic rates on off-diagonal elements and negative row-sum on the diagonal.
+ 
+11. plot_everything(): Called to plot current Monte Carlo sample.
 
-7. get_log_full_posterior(): Called by sampler() to get full joint posterior. Sums logarithms of likelihood and all the priors.
+12. save_mcmc_data(): Called by sampler() to save output to files.
 
-8. save_mcmc_data(): Called by sampler() to save output to files.
+13. get_reduced_propagator!(): Called to compute propagator/transition proability matrix from exponential of the generator matrix.
 
-9. print_and_plotting(): Called by sampler() to print values on standard out (terminal/screen). It also generates plots (shown in the example below).
+14. get_log_demarginalized_likelihood_rates(): Called to compute likelihood from sampled trajectory only as rates only affect trajectory.
 
-10. propose_params(): Called by sampler() in the for loop to propose new samples for each parameter that may or may not be accepted in the Metropolis-Hastings (MH) step.
+15. get_log_demarginalized_likelihood_FRET(): Called to compute likelihood from measurements and hidden variables only.
+
+16. get_log_likelihood_observations_only(): 
+
+17. get_log_observation_prob(): Called to get observation probability for a give time bin.
+
+18. sample_state_trajectory(): Called to sample state trajectory using Forward-filter-backward-sampling algorithm
+
+19. get_log_demarginalized_likelihood(): Called to compute likelihood given a trajectory.
+
+20. get_filter_terms!(): Called to get probability values for sampling state trajectory.
 
 
 # Test Examples
