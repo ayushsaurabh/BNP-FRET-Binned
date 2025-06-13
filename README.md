@@ -29,6 +29,16 @@ Also, see the image below for an example of the package installation process in 
 
 ![Screenshot from 2025-06-13 04-49-47](https://github.com/user-attachments/assets/fae7ecc4-9e54-4bf8-ad12-daaf1420822f)
 
+**To get out of the package manager, simply hit the backspace key.**
+
+### Environment Creation
+**This is for advanced users who already have Julia installed.**
+If you already have Julia and do not want to alter your default environment, you can go to the directory where this software is, then 
+1. Run Julia then type `]` and `activate .`;
+2. Or run Julia in terminal via `julia --project`.
+   
+These two ways are equivalent. Both of them create a new Julia environment the first time you run it, or otherwise switch to this environment.
+
 
 ## A Brief Description of the Sampler
 
