@@ -95,7 +95,8 @@ BNP-FRET code can now be executed by simply importing the "main.jl" in the REPL 
 
 ```include("main.jl")```
 
-![Screenshot from 2025-06-13 05-22-56](https://github.com/user-attachments/assets/97fbcb0c-2e2b-4480-8779-701d200776eb)
+
+![Screenshot from 2025-06-13 05-22-56](https://github.com/user-attachments/assets/411638ed-9649-4d85-ba5f-7ad936f684cf)
 
 
 On a linux or macOS machine, the "main.jl" script can be run directly from the terminal after entering the B-SIM directory and executing the following command:
