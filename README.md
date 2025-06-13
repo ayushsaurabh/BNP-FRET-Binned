@@ -116,24 +116,9 @@ Depending on the chosen plotting frequency in the "input_parameters.jl" file, th
 
 ![Screenshot from 2025-06-13 05-38-25](https://github.com/user-attachments/assets/9652c745-1d0f-475b-acc3-ef3b31e8243d)
 
+We note above that the logarithm of the posterior probability first increases ("burn in period") and then converges to its maximum value. Upon convergence, we store the sample onto hard drive at 5000 iteration ("save_burn_in_period" in the input parameters file). We then disturb the sample significantly by increasing "temperature" in order to eliminate correlations. We again wait for convergence and store the sample. We repeat this procedure, termed "simulated annealing", at the frequency set by "save_burn_in_period" parameter. Use of simulated annealing here helps uncorrelate the chain of samples by smoothing and widening the posterior at intermediate iterations by raising temperature, allowing the sampler to easily move far away from the current sample or a local maximum.
 
-Finally, as samples are collected, BNP-FRET saves intermediate samples and analysis data onto the hard drive in the HDF5 format with file names that start with "mcmc_output" in the same directory as the data. The save frequency can be modified by changing a few inference parameters in the "input_parameters.jl" file: "initial_burn_in_period" which is set based on when the sampler converges for the **first time**; simulated annealing is restarted at regular intervals set by the parameter "annealing_frequency"; simulated annealing starts with temperature set by "annealing_starting_temperature" and then the temperature decays exponentially with time constant set by "annealing_time_constant"; samples to be averaged are collected after the "annealing_burn_in_period" during which the sampler converges after increasing the temperature; and lastly, samples are collected at the "averaging_frequency" after the annealing burn-in period. Use of simulated annealing here helps uncorrelate the chain of samples by smoothing and widening the posterior at intermediate iterations by raising temperature, allowing the sampler to easily move far away from the current sample. Based on these parameters, the samples are saved whenever the following conditions are satisfied: 
-
-```
-if (draw == chain_burn_in_period) || ((draw > chain_burn_in_period) &&
-   ((draw - chain_burn_in_period) % annealing_frequency > annealing_burn_in_period ||
-   (draw - chain_burn_in_period) % annealing_frequency == 0) &&
-   ((draw - chain_burn_in_period) % averaging_frequency == 0))
-
-```
-where % indicates remainder upon division. For instance, using the default settings in the "input_parameters.jl" file shown above, the samples will be saved at iterations:
-
-``` 
-10020, 10040, 10060, ..., 10080,...
-
-```
-
-![image](https://github.com/user-attachments/assets/8c85c2a7-9827-427d-bebd-7d09a60c5007)
+Finally, as samples are collected, BNP-FRET saves intermediate samples and analysis data onto the hard drive in the HDF5 format with file names that start with "mcmc_output" in the same directory as the data.
 
 
 ## A Brief Description of the Sampler
@@ -147,59 +132,3 @@ The collected samples can then be used to compute statistical quantities and plo
 As mentioned before, sampler prefers movement towards higher probability regions of the posterior distribution. This means that if parameters are initialized in low probability regions of the posterior, which is typically the case, the posterior would appear to increase initially for many iterations (hundreds to thousands depending on the complexity of the model). This initial period is called burn-in. After burn-in, convergence is achieved where the posterior would typically fluctuate around some mean/average value. The convergence typically indicates that the sampler has reached the maximum of the posterior distribution (the most probability region), that is, sampler generates most samples from higher probability region. In other words, given a large collection of samples, the probability density in a region of parameter space is proportional to the number of samples collected from that region. 
  
 All the samples collected during burn-in are usually ignored when computing statistical properties and presenting the final posterior distribution. 
-
-
-## Functions and Output
-Each specialization of BNP-FRET (continuous or pulsed illumination) is organized in such a way that all the user input is accomplished via the "input_parameters.jl" file. It can be used to provide file names for experimental FRET data and sampler output, background rates for each detection channel, crosstalk probabilities, and plotting options. See the respective files for more details (they are well-commented). The functions involved in the both specializations of BNP-FRET and their respective outputs are briefly described below:
-
-### 1. Continuous Illumination
-
-The functions used to perform all the computations are organized in a hierarchical structure. The file "sampler_continuous_illumination.jl" contains the main sampler. All the functions called in that file are written in the file "functions_layer_1.jl". Similarly, all the functions called in the file "functions_layer_1.jl" are in file "functions_layer_2.jl". Any new set of functions can be introduced by following the same heirarchical structure. A brief description of all the functions is given below in the sequence they are called:
-
-
-
-
-An example of code output below shows the MCMC (Markov Chain Monte Carlo) iteration number (number of samples generated), number of active system states, labels for all the active loads, the excitation rate (related to laser power), rate matrix for the biomolecule of interest with FRET efficiencies on the diagonal instead of zeros, logarithm of the full joint posterior, and acceptance rates. We used smFRET data from experiments studying binding and unbinding of intrinsically disordered proteins (immobilized ACTR and freely-diffusing NCBD) in presence of 36 % ethylene glycol to generate this output.
-
-https://www.pnas.org/doi/full/10.1073/pnas.1921617117
-
-
-```
-=================================================================
- 
-Iteration: 1217
- 
-n_system_states = 4
- 
-loads_active = [1, 3, 5, 6]
- 
-excitation rate (s^(-1)) = 4111.3703223987695
- 
-rate_matrix (s^(-1)) (diagonal elements show FRET efficiencies) =
- 
-4×4 Matrix{Float64}:
- 0.0944715  0.650713    0.0648545  0.10982
- 0.411844   0.709043    0.729846   1.80119
- 2.97991    2.91667     0.487081   0.432123
- 0.869362   0.00541285  0.700872   0.054417 
- 
-log_full_posterior = -13304.721733757791
- 
-minimum, median, maximum acceptance rate = 60.72308956450287%  61.750205423171735%  88.82497945768283%  
- 
-=================================================================
-```
-
-
-
-
-
-
-Furthemore, the sampler output can be visualized using the plotting options in the "input_parameters.jl" file. Visualization of the sampler output makes it easy to identify when the posterior converges and the most probable model (number of system states). Furthermore, it shows a bivariate distribution for FRET efficiencies and escape rates (sum of all the rates out of a state or in a rate matrix row). All the samples until the full joint posterior reaches convergence (maximum value) should be ignored. This initial period is also known as burn-in. For efficient exploration of the parameter space, tune the covariance values for the proposal distributions in such a way that the acceptance rates stay between 30 and 60% approximately.
-
-
-![Screenshot from 2022-08-01 02-30-28](https://user-images.githubusercontent.com/87823118/182118887-f2f7426d-0508-4e8f-8bf3-dd0846466f22.png)
-
-### 2. Pulsed Illumination
-
-
