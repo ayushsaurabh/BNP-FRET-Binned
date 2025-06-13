@@ -83,7 +83,7 @@ We provide two examples: 1) a simulated FRET trace with 3 states and 2) experime
 ![Screenshot from 2025-06-13 05-16-28](https://github.com/user-attachments/assets/83d92ac9-04b1-45a8-82b2-b73f193c7fbc)
 
 
-To run this example, we suggest putting B-SIM scripts and the input tif files in the same folder/directory. Next, if running on a Windows machine, first confirm the current folder that julia is being run from by executing the following command in the REPL:
+To run an example, we suggest putting BNP-FRET scripts and the input data files in the same folder/directory. Next, if running on a Windows machine, first confirm the current folder that julia is being run from by executing the following command in the REPL:
 
 ```pwd()```
 
@@ -91,11 +91,11 @@ To run this example, we suggest putting B-SIM scripts and the input tif files in
 
 ```cd("/home/username/B-SIM/")```
 
-B-SIM code can now be executed by simply importing the "main.jl" in the REPL as shown in the picture below
+BNP-FRET code can now be executed by simply importing the "main.jl" in the REPL as shown in the picture below
 
 ```include("main.jl")```
 
-![image](https://github.com/user-attachments/assets/88c41cdf-9e26-4d40-b875-b34fd057522f)
+![Screenshot from 2025-06-13 05-22-56](https://github.com/user-attachments/assets/97fbcb0c-2e2b-4480-8779-701d200776eb)
 
 
 On a linux or macOS machine, the "main.jl" script can be run directly from the terminal after entering the B-SIM directory and executing the following command:
