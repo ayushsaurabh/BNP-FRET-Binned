@@ -39,6 +39,82 @@ If you already have Julia and do not want to alter your default environment, you
    
 These two ways are equivalent. Both of them create a new Julia environment the first time you run it, or otherwise switch to this environment.
 
+## Test Examples
+BNP-FRET is organized in such a way that all the user input is accomplished via the "input_parameters.jl" file. It can be used to provide file names for experimental FRET data and sampler output, camera sensitivity parameters, crosstalk probabilities, plotting options, and sampler options as shown below:
+
+![Screenshot from 2025-06-13 05-06-22](https://github.com/user-attachments/assets/16e51112-acc2-49f2-a4a1-155cb246c622)
+
+![Screenshot from 2025-06-13 05-06-30](https://github.com/user-attachments/assets/22dc8fc0-11d5-445b-aab4-fc40586c2c8d)
+
+Furthermore, the functions used to perform all the computations are organized in a hierarchical structure. The file "main.jl" contains the main sampler. All the functions called in that file are written in the file "functions_layer_1.jl". Similarly, all the functions called in the file "functions_layer_1.jl" are in file "functions_layer_2.jl". Any new set of functions can be introduced by following the same heirarchical structure. A brief description of all the functions is given below in the sequence they are called:
+
+Each specialization of BNP-FRET (continuous or pulsed illumination) is organized in such a way that all the user input is accomplished via the "input_parameters.jl" file. It can be used to provide file names for experimental FRET data and sampler output, background rates for each detection channel, crosstalk probabilities, and plotting options. See the respective files for more details (they are well-commented). The functions involved in the both specializations of BNP-FRET and their respective outputs are briefly described below:
+
+### 1. Continuous Illumination
+
+The functions used to perform all the computations are organized in a hierarchical structure. The file "sampler_continuous_illumination.jl" contains the main sampler. All the functions called in that file are written in the file "functions_layer_1.jl". Similarly, all the functions called in the file "functions_layer_1.jl" are in file "functions_layer_2.jl". Any new set of functions can be introduced by following the same heirarchical structure. A brief description of all the functions is given below in the sequence they are called:
+
+These parameters define the shape of the microscope point spread function (numerical aperture, magnification, light wavelength), camera noise (gain, CCD sensitivity, readout), directory (folder) where files are located, file name, parallelization and inference settings. 
+
+Using parameter files similar to the the image above, we here provide two simple plug and play example to test the functioning of B-SIM on a personal computer. In the first example for simulated line pairs with spacing varying 90nm to 150nm in increments of 30nm, we provide three tiff files "raw_images.tif", "patterns.tif", and "ground_truth.tif" containing 9 sinuosidal patterns and corresponding raw images as well as the ground truth. 
+
+In the second example for HeLa cells images obtained in an experiment, we also provide camera calibration maps in addition to the raw images and illumination patterns. 
+
+Currently, B-SIM accepts rectangular images. Furthermore, the current version provides two options for the PSF: "gaussian" and "airy_disk", but can be modified easily to incorporate any other shape.
+
+With the settings in the image above, the code divides all the images into 4 sets of sub-images of equal sizes (a 2x2 grid). Next, each set of sub-images is then sent to their assigned processor and inference is performed on the fluorescence intensity map. The number of processors can be changed if running on a more powerful computer by changing "n_procs_per_dim" parameter, which is set to 2 by default.
+
+To run this example, we suggest putting B-SIM scripts and the input tif files in the same folder/directory. Next, if running on a Windows machine, first confirm the current folder that julia is being run from by executing the following command in the REPL:
+
+```pwd()```
+
+**Please note here that Windows machines use backslashes "\\" to describe folder paths unlike Linux and macOS where forward slashes "/" are used.** Appropriate modifications therefore must be made to the folder paths. Now, if the output of the command above is different from the path containing the scripts and tiff files, the current path can be changed by executing the following command:
+
+```cd("/home/username/B-SIM/")```
+
+B-SIM code can now be executed by simply importing the "main.jl" in the REPL as shown in the picture below
+
+```include("main.jl")```
+
+![image](https://github.com/user-attachments/assets/88c41cdf-9e26-4d40-b875-b34fd057522f)
+
+
+On a linux or macOS machine, the "main.jl" script can be run directly from the terminal after entering the B-SIM directory and executing the following command:
+
+```julia main.jl```
+
+**WARNING: Please note that when running the code through the REPL, restart the REPL if B-SIM throws an error. Every execution of B-SIM adds processors to the julia REPL and processor ID or label increases in value. To make sure that processor labels always start at 1, we suggest avoiding restarting B-SIM in the same REPL.**
+
+Now, B-SIM is a fully parallelized code and starts execution by first adding the required number of processors. Next, all the input tif files are imported and divided according to the parallelization grid (2x2 by default). The sub-images are then sent to each processor. All the functions involved in SIM reconstruction are compiled next. Finally, the sampler starts and with each iteration outputs the log(posterior) values and a temperature parameter that users are not required to modify (see picture below). At the end of each iteration, sub-images are sent back to the master processor and combined into one image.
+
+![image](https://github.com/user-attachments/assets/2fc72885-2195-4f2a-b2fd-478310c49d06)
+
+
+
+
+Depending on the chosen plotting frequency in the "input_parameters.jl" file, the code also generates a plot showing the the log(posterior), one of the input raw images, current sample, and a mean of the previous samples (depending on averaging frequency) as shown in the picture below.
+
+![image](https://github.com/ayushsaurabh/B-SIM/assets/87823118/461213dd-18f6-4766-a75e-d266511d102d)
+
+
+Finally, as samples are collected, B-SIM saves intermediate samples and analysis data onto the hard drive in the TIFF format with file names that look like "mean_inferred_object_2.0.tif" and "inferred_object_2.0.tif". The save frequency can be modified by changing a few inference parameters in the "input_parameters.jl" file: "initial_burn_in_period" which is set based on when the sampler converges for the **first time**; simulated annealing is restarted at regular intervals set by the parameter "annealing_frequency"; simulated annealing starts with temperature set by "annealing_starting_temperature" and then the temperature decays exponentially with time constant set by "annealing_time_constant"; samples to be averaged are collected after the "annealing_burn_in_period" during which the sampler converges after increasing the temperature; and lastly, samples are collected at the "averaging_frequency" after the annealing burn-in period. Use of simulated annealing here helps uncorrelate the chain of samples by smoothing and widening the posterior at intermediate iterations by raising temperature, allowing the sampler to easily move far away from the current sample. Based on these parameters, the samples are saved whenever the following conditions are satisfied: 
+
+```
+if (draw == chain_burn_in_period) || ((draw > chain_burn_in_period) &&
+   ((draw - chain_burn_in_period) % annealing_frequency > annealing_burn_in_period ||
+   (draw - chain_burn_in_period) % annealing_frequency == 0) &&
+   ((draw - chain_burn_in_period) % averaging_frequency == 0))
+
+```
+where % indicates remainder upon division. For instance, using the default settings in the "input_parameters.jl" file shown above, the samples will be saved at iterations:
+
+``` 
+10020, 10040, 10060, ..., 10080,...
+
+```
+
+![image](https://github.com/user-attachments/assets/8c85c2a7-9827-427d-bebd-7d09a60c5007)
+
 
 ## A Brief Description of the Sampler
 
