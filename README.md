@@ -105,19 +105,19 @@ On a linux or macOS machine, the "main.jl" script can be run directly from the t
 
 **WARNING: Please note that when running the code through the REPL, restart the REPL if B-SIM throws an error. Every execution of B-SIM adds processors to the julia REPL and processor ID or label increases in value. To make sure that processor labels always start at 1, we suggest avoiding restarting B-SIM in the same REPL.**
 
-Now, B-SIM is a fully parallelized code and starts execution by first adding the required number of processors. Next, all the input tif files are imported and divided according to the parallelization grid (2x2 by default). The sub-images are then sent to each processor. All the functions involved in SIM reconstruction are compiled next. Finally, the sampler starts and with each iteration outputs the log(posterior) values and a temperature parameter that users are not required to modify (see picture below). At the end of each iteration, sub-images are sent back to the master processor and combined into one image.
-
-![image](https://github.com/user-attachments/assets/2fc72885-2195-4f2a-b2fd-478310c49d06)
+Now, the BNP-FRET output below shows the MCMC (Markov Chain Monte Carlo) iteration number (number of samples generated), number of active system states, labels for all the active loads (states), the absorption rate (related to laser power), rate matrix for the biomolecule of interest with FRET efficiencies on the diagonal instead of zeros, logarithm of the full joint posterior, and acceptance rates.
 
 
+![Screenshot from 2025-06-13 05-26-49](https://github.com/user-attachments/assets/87ab6ee8-cd8f-47de-9342-38eebfd2276e)
 
 
-Depending on the chosen plotting frequency in the "input_parameters.jl" file, the code also generates a plot showing the the log(posterior), one of the input raw images, current sample, and a mean of the previous samples (depending on averaging frequency) as shown in the picture below.
-
-![image](https://github.com/ayushsaurabh/B-SIM/assets/87823118/461213dd-18f6-4766-a75e-d266511d102d)
+Depending on the chosen plotting frequency in the "input_parameters.jl" file, the code also generates a set of plots showing (from top to bottom) the input donor and channel counts, apparent FRET efficiency, estimated state trajectory for the current sample, donor and acceptor background photon counts for the current sample, donor and acceptor photon emissions for the current sample, and the logarithm of the posterior probability to observe convergence of the sampler, as shown below.
 
 
-Finally, as samples are collected, B-SIM saves intermediate samples and analysis data onto the hard drive in the TIFF format with file names that look like "mean_inferred_object_2.0.tif" and "inferred_object_2.0.tif". The save frequency can be modified by changing a few inference parameters in the "input_parameters.jl" file: "initial_burn_in_period" which is set based on when the sampler converges for the **first time**; simulated annealing is restarted at regular intervals set by the parameter "annealing_frequency"; simulated annealing starts with temperature set by "annealing_starting_temperature" and then the temperature decays exponentially with time constant set by "annealing_time_constant"; samples to be averaged are collected after the "annealing_burn_in_period" during which the sampler converges after increasing the temperature; and lastly, samples are collected at the "averaging_frequency" after the annealing burn-in period. Use of simulated annealing here helps uncorrelate the chain of samples by smoothing and widening the posterior at intermediate iterations by raising temperature, allowing the sampler to easily move far away from the current sample. Based on these parameters, the samples are saved whenever the following conditions are satisfied: 
+![Screenshot from 2025-06-13 05-36-12](https://github.com/user-attachments/assets/27b4f523-2174-4376-b57a-1c65427cdb6b)
+
+
+Finally, as samples are collected, BNP-FRET saves intermediate samples and analysis data onto the hard drive in the HDF5 format with file names that start with "mcmc_output" in the same directory as the data. The save frequency can be modified by changing a few inference parameters in the "input_parameters.jl" file: "initial_burn_in_period" which is set based on when the sampler converges for the **first time**; simulated annealing is restarted at regular intervals set by the parameter "annealing_frequency"; simulated annealing starts with temperature set by "annealing_starting_temperature" and then the temperature decays exponentially with time constant set by "annealing_time_constant"; samples to be averaged are collected after the "annealing_burn_in_period" during which the sampler converges after increasing the temperature; and lastly, samples are collected at the "averaging_frequency" after the annealing burn-in period. Use of simulated annealing here helps uncorrelate the chain of samples by smoothing and widening the posterior at intermediate iterations by raising temperature, allowing the sampler to easily move far away from the current sample. Based on these parameters, the samples are saved whenever the following conditions are satisfied: 
 
 ```
 if (draw == chain_burn_in_period) || ((draw > chain_burn_in_period) &&
