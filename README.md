@@ -111,8 +111,6 @@ On a linux or macOS machine, the "main.jl" script can be run directly from the t
 
 ```julia main.jl```
 
-**WARNING: Please note that when running the code through the REPL, restart the REPL if B-SIM throws an error. Every execution of B-SIM adds processors to the julia REPL and processor ID or label increases in value. To make sure that processor labels always start at 1, we suggest avoiding restarting B-SIM in the same REPL.**
-
 Now, the BNP-FRET output below shows the MCMC (Markov Chain Monte Carlo) iteration number (number of samples generated), number of active system states, labels for all the active loads (states), the absorption rate (related to laser power), rate matrix for the biomolecule of interest with FRET efficiencies on the diagonal instead of zeros, logarithm of the full joint posterior, and acceptance rates.
 
 
