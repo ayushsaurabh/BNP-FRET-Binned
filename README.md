@@ -2,7 +2,7 @@
 
 BNP-FRET is a suite of software tools to analyze binned smFRET data collected using sCMOS and EMCCD detectors. It implements Markov chain Monte Carlo (MCMC) algorithms to learn distributions over parameters of interest: the number of states a biomolecule transitions through and associated transition rates. These tools can be used in a simple plug and play manner. Check the following set of papers to see details of all the mathematics involved in the development of BNP-FRET:
 
-https://biorxiv.org/cgi/content/short/2022.07.20.500887v1
+[https://www.biorxiv.org/content/10.1101/2025.06.12.659382v2](https://www.biorxiv.org/content/10.1101/2025.06.12.659382v2)
 
 ## Julia Installation
 
